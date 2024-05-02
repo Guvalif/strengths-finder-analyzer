@@ -53,6 +53,19 @@ ThemesTable = dict[str, list[Theme]]
 
 
 def histogram(table: ThemesTable, rate: int = 5) -> tuple[dict[Theme, int], dict[Theme, int]]:
+    """
+    Calculate the histogram of themes in the given table.
+
+    Args:
+        table (ThemesTable): The table containing themes of a team.
+        rate (int, optional): The number of themes to consider from the start and end of each item. Defaults to 5.
+
+    Returns:
+        tuple[dict[Theme, int], dict[Theme, int]]: A tuple containing two dictionaries representing the histograms:
+            - The first dictionary represents the histogram of strengths.
+            - The second dictionary represents the histogram of weaknesses.
+    """
+
     empty = { theme: 0 for theme in Theme.__args__ } # type: ignore
 
     s_hist = Counter(chain.from_iterable(map(lambda xs: xs[:rate], table.values())))
@@ -73,6 +86,17 @@ def _distance(Xi: list[Theme], Xj: list[Theme], rate: int) -> float:
 
 
 def distance_gen(table: ThemesTable, rate: int = 5) -> Generator[tuple[str, str, float], None, None]:
+    """
+    Generates a sequence of tuples representing the distance between pairs of team-members.
+
+    Args:
+        table (ThemesTable): The table containing themes of a team.
+        rate (int, optional): The number of themes to consider from the start and end of each item. Defaults to 5.
+
+    Yields:
+        tuple[str, str, float]: A tuple containing the names of the two team-members and their distance.
+    """
+
     for (name_i, Xi), (name_j, Xj) in combinations(table.items(), 2):
         yield (name_i, name_j, _distance(Xi, Xj, rate))
 
@@ -84,5 +108,16 @@ def _skipped_union(name_i: str, table: ThemesTable, rate: int) -> set[Theme]:
 
 
 def specific_gen(table: ThemesTable, rate: int = 5) -> Generator[tuple[str, set[Theme]], None, None]:
+    """
+    Generate a sequence of tuples representing the specific themes of a team-member.
+
+    Args:
+        table (ThemesTable): The table containing themes of a team.
+        rate (int, optional): The number of themes to consider from the start of each item. Defaults to 5.
+
+    Yields:
+        tuple[str, set[Theme]]: A tuple containing the name and a set of his/her specific themes.
+    """
+
     for name_i, Xi in table.items():
         yield (name_i, set(Xi[:rate]) - _skipped_union(name_i, table, rate))
