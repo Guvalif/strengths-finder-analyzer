@@ -1,3 +1,8 @@
+__author__    = 'TAKASE Kazuyuki'
+__copyright__ = 'TAKASE Kazuyuki'
+__license__   = 'The MIT License'
+
+
 from typing import Literal, Generator
 from collections import Counter
 from itertools import chain, combinations
