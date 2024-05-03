@@ -76,7 +76,7 @@ def histogram(table: ThemesTable, rate: int = 5) -> tuple[dict[Theme, int], dict
     s_hist = Counter(chain.from_iterable(map(lambda xs: xs[:rate], table.values())))
     w_hist = Counter(chain.from_iterable(map(lambda xs: xs[-rate:], table.values())))
 
-    return ({ **empty, **s_hist }, { **empty, **w_hist })
+    return ( { **empty, **s_hist }, { **empty, **w_hist } )
 
 
 def _jaccard(Xi: set, Xj: set) -> float:
@@ -103,11 +103,11 @@ def distance_gen(table: ThemesTable, rate: int = 5) -> Generator[tuple[str, str,
     """
 
     for (name_i, Xi), (name_j, Xj) in combinations(table.items(), 2):
-        yield (name_i, name_j, _distance(Xi, Xj, rate))
+        yield ( name_i, name_j, _distance(Xi, Xj, rate) )
 
 
 def _skipped_union(name_i: str, table: ThemesTable, rate: int) -> set[Theme]:
-    skipped = (set(Xj[:rate]) for name_j, Xj in table.items() if name_j != name_i)
+    skipped = ( set(Xj[:rate]) for name_j, Xj in table.items() if name_j != name_i )
 
     return reduce(lambda x, y: x | y, skipped)
 
@@ -125,4 +125,46 @@ def specific_gen(table: ThemesTable, rate: int = 5) -> Generator[tuple[str, set[
     """
 
     for name_i, Xi in table.items():
-        yield (name_i, set(Xi[:rate]) - _skipped_union(name_i, table, rate))
+        yield ( name_i, set(Xi[:rate]) - _skipped_union(name_i, table, rate) )
+
+
+if __name__ == '__main__':
+    from sys import stdin
+    from json import load
+
+
+    def pretty_histogram(hist: dict[Theme, int]) -> None:
+        for theme, count in hist.items():
+            print(f'{theme}: {count}')
+
+        print('')
+
+
+    def pretty_distance_gen(gen: Generator[tuple[str, str, float], None, None]) -> None:
+        for name_i, name_j, distance in gen:
+            print(f'{name_i} <-> {name_j}: {distance:.2f}')
+
+        print('')
+
+
+    def pretty_specific_gen(gen: Generator[tuple[str, set[Theme]], None, None]) -> None:
+        for name, specific in gen:
+            print(f'{name}: {specific}')
+
+        print('')
+
+
+    table = load(stdin)
+    strengths, weaknesses = histogram(table)
+
+    print('=== Strengths Histogram ===')
+    pretty_histogram(strengths)
+
+    print('=== Weaknesses Histogram ===')
+    pretty_histogram(weaknesses)
+
+    print('=== Distances ===')
+    pretty_distance_gen(distance_gen(table))
+
+    print('=== Specific Themes ===')
+    pretty_specific_gen(specific_gen(table))
